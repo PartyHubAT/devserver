@@ -8,6 +8,7 @@ const {Server} = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
+const roomName = process.env.ROOMNAME
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:8080",
@@ -16,6 +17,20 @@ const io = new Server(server, {
     transports: ['websocket', 'polling'],
   }, allowEIO3: true
 });
+
+// Setup websocket
+
+io.on("connection", socket => {
+
+  console.log(`Socket ${socket.id} connected.`)
+  socket.join(roomName)
+
+  socket.on("disconnect", () => {
+    console.log(`Socket ${socket.id} disconnect.`)
+    socket.leave(roomName)
+  })
+
+})
 
 // Start server
 
