@@ -17,13 +17,20 @@ const io = new Server(server, {
     transports: ['websocket', 'polling'],
   }, allowEIO3: true
 });
+const {register} = serverLogic
 
 // Setup websocket
 
 io.on("connection", socket => {
 
+  function emitRoomMsg(name, data) {
+    console.log(`Socket ${socket.id} sent a message into the room: ${JSON.stringify(data)}`)
+    io.to(roomName).emit(name, data)
+  }
+
   console.log(`Socket ${socket.id} connected.`)
   socket.join(roomName)
+  register(socket, emitRoomMsg)
 
   socket.on("disconnect", () => {
     console.log(`Socket ${socket.id} disconnect.`)
