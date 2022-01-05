@@ -1,1 +1,2 @@
-﻿require("dotenv").config()
+﻿require('dotenv').config()
+const serverLogic = require(process.env.GAMESERVERLOGICPATH)
