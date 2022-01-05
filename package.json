@@ -1,0 +1,31 @@
+{
+  "name": "devserver",
+  "version": "0.0.1",
+  "description": "A special version of the party-hub server made for the game-development process",
+  "homepage": "https://github.com/PartyHubAT/devserver#readme",
+  "bugs": {
+    "url": "https://github.com/PartyHubAT/devserver/issues"
+  },
+  "contributors": [
+    {
+      "name": "Ramon Brullo",
+      "email": "it211505@fhstp.ac.at",
+      "url": "https://github.com/ComradeVanti"
+    },
+    {
+      "name": "Fabian Gaugusch",
+      "email": "it211504@fhstp.ac.at",
+      "url": "https://github.com/FruitDude222"
+    },
+    {
+      "name": "Lukas Ganster",
+      "email": "it211502@fhstp.ac.at",
+      "url": "https://github.com/lukasganster"
+    }
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PartyHubAT/devserver.git"
+  }
+}
