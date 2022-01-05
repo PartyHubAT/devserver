@@ -9,3 +9,8 @@
                       |___/                                                                    
 </pre>
 A special version of the party-hub server made for the game-development process
+## Usage
+1. Pull the repo
+2. Copy the contents of `.env.example` to a new `.env` file and modify the 
+   contents as needed.
+3. Run the server with `node index.js`
