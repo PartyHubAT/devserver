@@ -163,14 +163,15 @@ function startGame () {
 io.on('connection', socket => {
   // Players can only join while there is room and the game has not started yet.
   if (!startPlayerCountReached()) {
-    if (isInLobby()) { addPlayer(socket) } else { console.log(`Socket ${socket.id} attempted to join, but the game has already started.`) }
+    if (isInLobby()) {
+      addPlayer(socket)
+      // If enough players are here, the game can start
+      if (startPlayerCountReached()) {
+        console.log('Start player-count reached.')
+        startGame()
+      }
+    } else { console.log(`Socket ${socket.id} attempted to join, but the game has already started.`) }
   } else { console.log(`Socket ${socket.id} attempted to join, but the room is already full.`) }
-
-  // If enough players are here, the game can start
-  if (startPlayerCountReached()) {
-    console.log('Start player-count reached.')
-    startGame()
-  }
 
   socket.on('disconnect', () => {
     // Only remove sockets if they are actually in the game
