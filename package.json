@@ -1,6 +1,6 @@
 {
   "name": "devserver",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A special version of the party-hub server made for the game-development process",
   "homepage": "https://github.com/PartyHubAT/devserver#readme",
   "bugs": {
