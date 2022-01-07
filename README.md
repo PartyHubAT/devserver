@@ -11,6 +11,8 @@
 A special version of the party-hub server made for the game-development process
 ## Usage
 1. Pull the repo
-2. Copy the contents of `.env.example` to a new `.env` file and modify the 
-   contents as needed.
+2. Copy the contents of `.env.example` to a new `.env` file and modify them
+   as needed.
+   1. Link to you games server logic
+   2. Link to your test-settings file
 3. Run the server with `node index.js`
