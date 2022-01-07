@@ -10,6 +10,7 @@ const app = express()
 const server = http.createServer(app)
 const roomName = process.env.ROOMNAME
 const startPlayerCount = parseInt(process.env.STARTPLAYERCOUNT)
+const settings = require(process.env.SETTINGSPATH)
 const io = new Server(server, {
   cors: {
     origin: 'http://localhost:8080',
@@ -75,7 +76,7 @@ function startGame () {
   console.log('Initializing game...')
 
   const players = getPlayers()
-  const gameServer = initServerLogic(emitToAll, emitToOne, players)
+  const gameServer = initServerLogic(emitToAll, emitToOne, players, settings)
 
   getPlayerSockets().forEach(socket => {
     const events = gameServer.events
