@@ -25,64 +25,119 @@ let status = 'LOBBY'
 
 // Setup websocket
 
+/**
+ * Calculates the current player count
+ * @returns {number} The number of players currently in the game
+ */
 function playerCount () {
   return playerIds.length
 }
 
+/**
+ * Adds a player to the game
+ * @param {Socket} socket
+ */
 function addPlayer (socket) {
   socket.join(roomName)
   playerIds.push(socket.id)
   console.log(`Socket ${socket.id} connected. (${playerCount()}/${startPlayerCount})`)
 }
 
+/**
+ * Removes a player from the game
+ * @param {Socket} socket
+ */
 function removePlayer (socket) {
   socket.leave(roomName)
   playerIds.splice(playerIds.indexOf(socket.id), 1)
   console.log(`Socket ${socket.id} disconnect. (${playerCount()}/${startPlayerCount})`)
 }
 
+/**
+ * Checks if the player-count to start is reached
+ * @returns {boolean} Whether the count was reached or not
+ */
 function startPlayerCountReached () {
   return playerCount() === startPlayerCount
 }
 
+/**
+ * Checks if a socket is a player in the current game
+ * @param {Socket} socket The socket
+ * @returns {boolean} Whether the socket is a player in the current game
+ */
 function isPlayer (socket) {
   return playerIds.includes(socket.id)
 }
 
+/**
+ * Gets a socket in the game by its id
+ * @param {String} id The sockets id
+ * @returns {Socket} The socket
+ */
 function getSocketById (id) {
   return io.sockets.sockets.get(id)
 }
 
+/**
+ * Gets all sockets, currently in the game
+ * @returns {Socket[]} The sockets
+ */
 function getPlayerSockets () {
   return playerIds.map(id => getSocketById(id))
 }
 
+/**
+ * Makes the players for the game
+ * @returns {{_id: String}[]} The generated players
+ */
 function getPlayers () {
   return playerIds.map(id => ({
     _id: id
   }))
 }
 
+/**
+ * Checks if the server is currently in the lobby-phase
+ * @returns {boolean} Whether the server is in the lobby phase
+ */
 function isInLobby () {
   return status === 'LOBBY'
 }
 
-function emitToAll (name, data) {
-  console.log(`Server sent "${name}" to all sockets with ${JSON.stringify(data)}`)
-  io.to(roomName).emit(name, data)
+/**
+ * Emits an event to all sockets in the game
+ * @param {string} eventName The name of the event
+ * @param {Object} data The data to be emitted
+ */
+function emitToAll (eventName, data) {
+  console.log(`Server sent "${eventName}" to all sockets with ${JSON.stringify(data)}`)
+  io.to(roomName).emit(eventName, data)
 }
 
+/**
+ * Emits an event to a specific socket in the game
+ * @param {String} id The id of the socket
+ * @param {string} eventName The name of the event
+ * @param {Object} data The data to be emitted
+ */
 function emitToOne (id, eventName, data) {
   console.log(`Server sent "${eventName}" to "${id}" socket with ${JSON.stringify(data)}`)
   getSocketById(id).emit(eventName, data)
 }
 
+/**
+ * Ends the current game
+ */
 function endGame () {
   console.log('Game was ended')
   status = 'LOBBY'
   getPlayerSockets().forEach(socket => socket.disconnect())
 }
 
+/**
+ * Starts the game
+ */
 function startGame () {
   console.log('Initializing game...')
   status = 'INGAME'
@@ -106,16 +161,19 @@ function startGame () {
 }
 
 io.on('connection', socket => {
+  // Players can only join while there is room and the game has not started yet.
   if (!startPlayerCountReached()) {
     if (isInLobby()) { addPlayer(socket) } else { console.log(`Socket ${socket.id} attempted to join, but the game has already started.`) }
   } else { console.log(`Socket ${socket.id} attempted to join, but the room is already full.`) }
 
+  // If enough players are here, the game can start
   if (startPlayerCountReached()) {
     console.log('Start player-count reached.')
     startGame()
   }
 
   socket.on('disconnect', () => {
+    // Only remove sockets if they are actually in the game
     if (isPlayer(socket)) { removePlayer(socket) }
   })
 })
