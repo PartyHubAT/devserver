@@ -175,7 +175,16 @@ io.on('connection', socket => {
 
   socket.on('disconnect', () => {
     // Only remove sockets if they are actually in the game
-    if (isPlayer(socket)) { removePlayer(socket) }
+    if (isPlayer(socket)) {
+      removePlayer(socket)
+
+      // If the game is already running, quit it
+
+      if (!isInLobby()) {
+        console.log('A player left the game while it is running.')
+        endGame()
+      }
+    }
   })
 })
 
