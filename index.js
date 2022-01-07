@@ -21,6 +21,7 @@ const io = new Server(server, {
   allowEIO3: true
 })
 const playerIds = []
+let status = 'LOBBY'
 
 // Setup websocket
 
@@ -62,6 +63,10 @@ function getPlayers () {
   }))
 }
 
+function isInLobby () {
+  return status === 'LOBBY'
+}
+
 function emitToAll (name, data) {
   console.log(`Server sent "${name}" to all sockets with ${JSON.stringify(data)}`)
   io.to(roomName).emit(name, data)
@@ -72,11 +77,18 @@ function emitToOne (id, eventName, data) {
   getSocketById(id).emit(eventName, data)
 }
 
+function endGame () {
+  console.log('Game was ended')
+  status = 'LOBBY'
+  getPlayerSockets().forEach(socket => socket.disconnect())
+}
+
 function startGame () {
   console.log('Initializing game...')
+  status = 'INGAME'
 
   const players = getPlayers()
-  const gameServer = initServerLogic(emitToAll, emitToOne, players, settings)
+  const gameServer = initServerLogic(emitToAll, emitToOne, endGame, players, settings)
 
   getPlayerSockets().forEach(socket => {
     const events = gameServer.events
@@ -95,7 +107,7 @@ function startGame () {
 
 io.on('connection', socket => {
   if (!startPlayerCountReached()) {
-    addPlayer(socket)
+    if (isInLobby()) { addPlayer(socket) } else { console.log(`Socket ${socket.id} attempted to join, but the game has already started.`) }
   } else { console.log(`Socket ${socket.id} attempted to join, but the room is already full.`) }
 
   if (startPlayerCountReached()) {
