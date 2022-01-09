@@ -1,7 +1,6 @@
 ﻿require('dotenv').config()
 const express = require('express')
 const http = require('http')
-const initServerLogic = require(process.env.GAMESERVERLOGICPATH)
 const { Server } = require('socket.io')
 
 // Setup globals
@@ -10,7 +9,6 @@ const app = express()
 const server = http.createServer(app)
 const roomName = process.env.ROOMNAME
 const startPlayerCount = parseInt(process.env.STARTPLAYERCOUNT)
-const settings = require(process.env.SETTINGSPATH)
 const io = new Server(server, {
   cors: {
     origin: 'http://localhost:8080',
@@ -141,6 +139,9 @@ function endGame () {
 function startGame () {
   console.log('Initializing game...')
   status = 'INGAME'
+
+  const settings = require(process.env.SETTINGSPATH)
+  const initServerLogic = require(process.env.GAMESERVERLOGICPATH)
 
   const players = getPlayers()
   const gameServer = initServerLogic(emitToAll, emitToOne, endGame, players, settings)
