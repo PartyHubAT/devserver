@@ -151,7 +151,7 @@ function startGame () {
     Object.keys(events).forEach(event => {
       socket.on(event, data => {
         console.log(`Socket ${socket.id} sent "${event}" to the server with ${JSON.stringify(data)}`)
-        events[event](data)
+        events[event](socket.id, data)
       })
     })
   })
