@@ -11,7 +11,7 @@ const roomName = process.env.ROOMNAME
 const startPlayerCount = parseInt(process.env.STARTPLAYERCOUNT)
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:8080',
+    origin: '*',
     methods: ['GET', 'POST'],
     credentials: true,
     transports: ['websocket', 'polling']
