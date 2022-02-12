@@ -92,6 +92,19 @@ function getPlayerSockets () {
 function getPlayers () {
   return playerIds.map(id => ({
     _id: id
+  const pseudoNames = [
+    'Max',
+    'Fabian',
+    'Ramon',
+    'Lisa',
+    'Theresa',
+    'Armin',
+    'Moritz',
+    'Carina'
+  ]
+  return playerIds.map((id) => ({
+    _id: id,
+    name: pseudoNames[Math.floor(Math.random() * pseudoNames.length)]
   }))
 }
 
