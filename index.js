@@ -160,6 +160,14 @@ function startGame () {
   const gameServer = initServerLogic(emitToAll, emitToOne, endGame, players, settings)
 
   getPlayerSockets().forEach(socket => {
+  const gameServer = initServerLogic(
+    emitToAll,
+    emitToOne,
+    endGame,
+    players,
+    settings && settings.defaultValues ? settings.defaultValues : settings
+  )
+
     const events = gameServer.events
     Object.keys(events).forEach(event => {
       socket.on(event, data => {
