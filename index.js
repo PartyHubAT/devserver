@@ -54,7 +54,7 @@ function playerCount () {
 
 /**
  * Adds a player to the game
- * @param {Socket} socket
+ * @param {import("socket.io").Socket} socket
  */
 function addPlayer (socket) {
   socket.join(roomName)
@@ -64,7 +64,7 @@ function addPlayer (socket) {
 
 /**
  * Removes a player from the game
- * @param {Socket} socket
+ * @param {import("socket.io").Socket} socket
  */
 function removePlayer (socket) {
   socket.leave(roomName)
@@ -82,7 +82,7 @@ function startPlayerCountReached () {
 
 /**
  * Checks if a socket is a player in the current game
- * @param {Socket} socket The socket
+ * @param {import("socket.io").Socket} socket The socket
  * @returns {boolean} Whether the socket is a player in the current game
  */
 function isPlayer (socket) {
@@ -91,8 +91,8 @@ function isPlayer (socket) {
 
 /**
  * Gets a socket in the game by its id
- * @param {String} id The sockets id
- * @returns {Socket} The socket
+ * @param {PlayerId} id The sockets id
+ * @returns {import("socket.io").Socket} The socket
  */
 function getSocketById (id) {
   return io.sockets.sockets.get(id)
@@ -100,7 +100,7 @@ function getSocketById (id) {
 
 /**
  * Gets all sockets, currently in the game
- * @returns {Socket[]} The sockets
+ * @returns {import("socket.io").Socket[]} The sockets
  */
 function getPlayerSockets () {
   return playerIds.map(id => getSocketById(id))
@@ -108,7 +108,7 @@ function getPlayerSockets () {
 
 /**
  * Makes the players for the game
- * @returns {{_id: String}[]} The generated players
+ * @returns {Player[]} The generated players
  */
 function getPlayers () {
   return playerIds.map(id => ({
@@ -126,6 +126,26 @@ function isInLobby () {
 }
 
 /**
+ * Loads the current game-settings
+ * @return {Settings}
+ */
+function loadSettings () {
+  return require(process.env.SETTINGSPATH)
+}
+
+/**
+ * Starts a new game-server
+ * @returns {GameServer}
+ */
+function startGameServer () {
+  const settings = loadSettings()
+  const initServerLogic = require(process.env.GAMESERVERLOGICPATH)
+
+  const players = getPlayers()
+  return initServerLogic(emitToAll, emitToOne, endGame, players, settings)
+}
+
+/**
  * Emits an event to all sockets in the game
  * @param {string} eventName The name of the event
  * @param {Object} data The data to be emitted
@@ -137,7 +157,7 @@ function emitToAll (eventName, data) {
 
 /**
  * Emits an event to a specific socket in the game
- * @param {String} id The id of the socket
+ * @param {PlayerId} id The id of the socket
  * @param {string} eventName The name of the event
  * @param {Object} data The data to be emitted
  */
@@ -162,21 +182,9 @@ function startGame () {
   console.log('Initializing game...')
   status = 'INGAME'
 
-  const settings = require(process.env.SETTINGSPATH)
-  const initServerLogic = require(process.env.GAMESERVERLOGICPATH)
-
-  const players = getPlayers()
-  const gameServer = initServerLogic(emitToAll, emitToOne, endGame, players, settings)
+  const gameServer = startGameServer()
 
   getPlayerSockets().forEach(socket => {
-  const gameServer = initServerLogic(
-    emitToAll,
-    emitToOne,
-    endGame,
-    players,
-    settings && settings.defaultValues ? settings.defaultValues : settings
-  )
-
     const events = gameServer.events
     Object.keys(events).forEach(event => {
       socket.on(event, data => {
@@ -201,8 +209,12 @@ io.on('connection', socket => {
         console.log('Start player-count reached.')
         startGame()
       }
-    } else { console.log(`Socket ${socket.id} attempted to join, but the game has already started.`) }
-  } else { console.log(`Socket ${socket.id} attempted to join, but the room is already full.`) }
+    } else {
+      console.log(`Socket ${socket.id} attempted to join, but the game has already started.`)
+    }
+  } else {
+    console.log(`Socket ${socket.id} attempted to join, but the room is already full.`)
+  }
 
   socket.on('disconnect', () => {
     // Only remove sockets if they are actually in the game
