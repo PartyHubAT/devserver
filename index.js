@@ -32,7 +32,11 @@ const io = new Server(server, {
   },
   allowEIO3: true
 })
-const playerIds = []
+/**
+ * The currently logged-in players
+ * @type {Player[]}
+ */
+const players = []
 let status = 'LOBBY'
 
 // Setup websocket
@@ -41,8 +45,9 @@ let status = 'LOBBY'
  * Gets a random pseudo-name
  * @return {string} The name
  */
-function getRandomPseudoName () {
-  return pseudoNames[Math.floor(Math.random() * pseudoNames.length)]
+function getRandomFreePseudoName () {
+  const freeNames = pseudoNames.filter(it => players.findIndex(p => p.name === it) === -1)
+  return freeNames[Math.floor(Math.random() * freeNames.length)]
 }
 
 /**
@@ -50,26 +55,30 @@ function getRandomPseudoName () {
  * @returns {number} The number of players currently in the game
  */
 function playerCount () {
-  return playerIds.length
+  return players.length
 }
 
 /**
  * Adds a player to the game
- * @param {import("socket.io").Socket} socket
+ * @param {import('socket.io').Socket} socket
  */
 function addPlayer (socket) {
   socket.join(roomName)
-  playerIds.push(socket.id)
-  console.log(`Socket ${socket.id} connected. (${playerCount()}/${startPlayerCount})`)
+  const player = {
+    _id: socket.id,
+    name: getRandomFreePseudoName()
+  }
+  players.push(player)
+  console.log(`${player.name} (${socket.id}) connected. (${playerCount()}/${startPlayerCount})`)
 }
 
 /**
  * Removes a player from the game
- * @param {import("socket.io").Socket} socket
+ * @param {import('socket.io').Socket} socket
  */
 function removePlayer (socket) {
   socket.leave(roomName)
-  playerIds.splice(playerIds.indexOf(socket.id), 1)
+  players.splice(players.findIndex(it => it._id === socket.id), 1)
   console.log(`Socket ${socket.id} disconnect. (${playerCount()}/${startPlayerCount})`)
 }
 
@@ -82,18 +91,36 @@ function startPlayerCountReached () {
 }
 
 /**
+ * Finds the player with a given id
+ * @param {PlayerId} id The id
+ * @returns {Player} The found player
+ */
+function getPlayerById (id) {
+  return players.find(it => it._id === id)
+}
+
+/**
+ * Gets the name of a player by their id
+ * @param {PlayerId} id The players id
+ * @returns {string} The players name
+ */
+function getPlayerName (id) {
+  return getPlayerById(id).name
+}
+
+/**
  * Checks if a socket is a player in the current game
- * @param {import("socket.io").Socket} socket The socket
+ * @param {import('socket.io').Socket} socket The socket
  * @returns {boolean} Whether the socket is a player in the current game
  */
 function isPlayer (socket) {
-  return playerIds.includes(socket.id)
+  return players.findIndex(it => it._id === socket.id) !== -1
 }
 
 /**
  * Gets a socket in the game by its id
  * @param {PlayerId} id The sockets id
- * @returns {import("socket.io").Socket} The socket
+ * @returns {import('socket.io').Socket} The socket
  */
 function getSocketById (id) {
   return io.sockets.sockets.get(id)
@@ -101,21 +128,10 @@ function getSocketById (id) {
 
 /**
  * Gets all sockets, currently in the game
- * @returns {import("socket.io").Socket[]} The sockets
+ * @returns {import('socket.io').Socket[]} The sockets
  */
 function getPlayerSockets () {
-  return playerIds.map(id => getSocketById(id))
-}
-
-/**
- * Makes the players for the game
- * @returns {Player[]} The generated players
- */
-function getPlayers () {
-  return playerIds.map(id => ({
-    _id: id,
-    name: getRandomPseudoName()
-  }))
+  return players.map(it => getSocketById(it._id))
 }
 
 /**
@@ -144,9 +160,9 @@ function startGameServer () {
   const initServerLogic = require(process.env.GAMESERVERLOGICPATH)
 
   const settings = loadSettings()
+  const currentPlayers = JSON.parse(JSON.stringify(players)) // Make a deep copy of the current players
 
-  const players = getPlayers()
-  return initServerLogic(emitToAll, emitToOne, endGame, players, settings)
+  return initServerLogic(emitToAll, emitToOne, endGame, currentPlayers, settings)
 }
 
 /**
@@ -166,7 +182,7 @@ function emitToAll (eventName, data) {
  * @param {Object} data The data to be emitted
  */
 function emitToOne (id, eventName, data) {
-  console.log(`Server sent "${eventName}" to "${id}" socket with ${JSON.stringify(data)}`)
+  console.log(`Server sent "${eventName}" to ${getPlayerName(id)} with ${JSON.stringify(data)}`)
   getSocketById(id).emit(eventName, data)
 }
 
@@ -192,7 +208,7 @@ function startGame () {
     const events = gameServer.events
     Object.keys(events).forEach(event => {
       socket.on(event, data => {
-        console.log(`Socket ${socket.id} sent "${event}" to the server with ${JSON.stringify(data)}`)
+        console.log(`${getPlayerName(socket.id)} sent "${event}" to the server with ${JSON.stringify(data)}`)
         events[event](socket.id, data)
       })
     })
