@@ -2,6 +2,7 @@
 const express = require('express')
 const http = require('http')
 const { Server } = require('socket.io')
+const clearModule = require('clear-module')
 
 // Setup constants
 
@@ -130,6 +131,7 @@ function isInLobby () {
  * @return {Settings}
  */
 function loadSettings () {
+  clearModule(process.env.SETTINGSPATH)
   return require(process.env.SETTINGSPATH)
 }
 
@@ -138,8 +140,10 @@ function loadSettings () {
  * @returns {GameServer}
  */
 function startGameServer () {
-  const settings = loadSettings()
+  clearModule(process.env.GAMESERVERLOGICPATH)
   const initServerLogic = require(process.env.GAMESERVERLOGICPATH)
+
+  const settings = loadSettings()
 
   const players = getPlayers()
   return initServerLogic(emitToAll, emitToOne, endGame, players, settings)
