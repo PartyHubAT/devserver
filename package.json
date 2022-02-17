@@ -6,6 +6,9 @@
   "bugs": {
     "url": "https://github.com/PartyHubAT/devserver/issues"
   },
+  "scripts": {
+    "start": "node index.js"
+  },
   "contributors": [
     {
       "name": "Ramon Brullo",
