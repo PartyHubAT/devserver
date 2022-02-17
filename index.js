@@ -3,6 +3,19 @@ const express = require('express')
 const http = require('http')
 const { Server } = require('socket.io')
 
+// Setup constants
+
+const pseudoNames = [
+  'Max',
+  'Fabian',
+  'Ramon',
+  'Lisa',
+  'Theresa',
+  'Armin',
+  'Moritz',
+  'Carina'
+]
+
 // Setup globals
 
 const app = express()
@@ -22,6 +35,14 @@ const playerIds = []
 let status = 'LOBBY'
 
 // Setup websocket
+
+/**
+ * Gets a random pseudo-name
+ * @return {string} The name
+ */
+function getRandomPseudoName () {
+  return pseudoNames[Math.floor(Math.random() * pseudoNames.length)]
+}
 
 /**
  * Calculates the current player count
@@ -91,20 +112,8 @@ function getPlayerSockets () {
  */
 function getPlayers () {
   return playerIds.map(id => ({
-    _id: id
-  const pseudoNames = [
-    'Max',
-    'Fabian',
-    'Ramon',
-    'Lisa',
-    'Theresa',
-    'Armin',
-    'Moritz',
-    'Carina'
-  ]
-  return playerIds.map((id) => ({
     _id: id,
-    name: pseudoNames[Math.floor(Math.random() * pseudoNames.length)]
+    name: getRandomPseudoName()
   }))
 }
 
