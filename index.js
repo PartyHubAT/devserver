@@ -170,6 +170,11 @@ function emitToAll (eventName, data) {
 function emitToOne (id, eventName, data) {
   console.log(`Server sent "${eventName}" to "${id}" socket with ${JSON.stringify(data)}`)
   getSocketById(id).emit(eventName, data)
+  console.log(
+    `Server sent "${eventName}" to "${id}" socket with ${JSON.stringify(data)}`
+  )
+  const socket = getSocketById(id)
+  if (socket) socket.emit(eventName, data)
 }
 
 /**
