@@ -143,7 +143,6 @@ function startGameServer () {
   clearModule(process.env.GAMESERVERLOGICPATH)
   const initServerLogic = require(process.env.GAMESERVERLOGICPATH)
 
-  const settings = loadSettings()
   let settings = loadSettings()
   if (settings && settings.defaultValues) settings = settings.defaultValues
 
